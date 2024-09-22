@@ -1,0 +1,13 @@
+function [T,P] = SweepPlotTh1bounds(th2mi, th2ma, th1,l1, l2)
+scan=0.01;
+th2=th2mi:scan:th2ma;
+c1 = cos(th1);
+s1 = sin(th1);
+s12 = sin(th1+th2);
+c12 = cos(th1+th2);
+xth1min=l1*c1+l2*c12;
+yth1min=l1*s1+l2*s12;
+P = [xth1min' yth1min'];
+T = zeros(5,2);
+T(:,1) = [0 l1*cos(th1) l1*cos(th1)+l2*cos(th1+th2mi) l1*cos(th1) 0];
+T(:,2) = [0 l1*sin(th1) l1*sin(th1)+l2*sin(th1+th2mi) l1*sin(th1) 0];
