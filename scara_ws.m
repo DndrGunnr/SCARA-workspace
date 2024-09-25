@@ -21,26 +21,50 @@ function scara_ws(th1_lim, th2_lim, L1, L2, x0, y0, r0)
         edges = zeros(num_points, 2, 9); % 8 bordi
 
         %TODO insert evaluation of collision between obstacle and link 2
+        q2max=max(abs(th2_lim_rad(1)),abs(th2_lim_rad(2)));
+        xee_min = L1 + L2 * cos(q2max);
+        yee_min = L2 * sin(q2max);
+        %minimum distance of EE from center
+        radiusPlcm=sqrt(xee_min^2+yee_min^2);
+        %distance of obstacle furthest point from center
+        obsDist=sqrt(x0^2+y0^2)+r0;
+        if(obsDist>radiusPlcm && obsDist<(L1+L2))
+            error("obstacle may collide with link 2")
+        end
+        %compute radius of allowed area
+        
 
         %computation of edges of joint space considering collision between
         %calcolo dei limiti introdotti dall'ostacolo
-        theta_obs=y0/x0;
+        theta_obs=atan2(y0,x0);
         %distanza tra origine e centro della circonferenza dell'ostacolo
         d=sqrt(y0^2+x0^2);
         alfa=asin(r0/d);
         thobs_lim=[theta_obs-alfa;theta_obs+alfa];
+        rad2deg(thobs_lim)
     
         %considering the new boundary of the joint space as the
         %obstacle angle threshold
-        if thobs_lim(1)<th1_lim_rad(1)
-            %the exluded joint space region overflows to the left
-            theta1 = linspace(thobs_lim(2), th1_lim_rad(2), num_points);
-            edges = edges_computation (theta1,theta2);
+        if (obsDist>(L1+L2))
+            edges= edges_computation(theta1,theta2);
+
+        elseif thobs_lim(1)<th1_lim_rad(1)
+            if thobs_lim(2)<th1_lim_rad(1)
+                edges= edges_computation(theta1,theta2);
+            else
+                %the exluded joint space region overflows to the left
+                theta1 = linspace(thobs_lim(2), th1_lim_rad(2), num_points);
+                edges = edges_computation (theta1,theta2);
+            end
 
         elseif thobs_lim(2)>th2_lim_rad(2)
-            %the exluded joint space region overflows to the right
-            theta1 = linspace(thobs_lim(2), thobs_lim(1), num_points);
-            edges = edges_computation (theta1,theta2);
+            if thobs_lim(1)>th1_lim_rad(2)
+                edges= edges_computation(theta1,theta2);
+            else
+                %the exluded joint space region overflows to the right
+                theta1 = linspace(thobs_lim(2), thobs_lim(1), num_points);
+                edges = edges_computation (theta1,theta2);
+            end
 
         else
             %the exluded joint space region remains inside the "span" of the
