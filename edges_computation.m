@@ -33,7 +33,7 @@ function edges= edges_computation(theta1,theta2,thobs_lim)
         %1|            |2//3|             |4
         % |------7-----|////|-----8-------|
 
-        edges = zeros(num_points, 2, 9); % 8 bordi
+        edges = zeros(num_points, 2, 10); % 10  bordi
         
         
         %new "shattered" horizontal edges
@@ -67,8 +67,11 @@ function edges= edges_computation(theta1,theta2,thobs_lim)
         edges(:, 2, 8)= theta2(1); %bordo superiore sinistro
         edges(:, 1, 8)= xedge68;
 
-        edges(:,2,9)=0;   %aspect change
-        edges(:,1,9)=theta1;
+        edges(:,2,9)=0;   %left aspect change 
+        edges(:,1,9)=xedge57;
+
+        edges (:,2,10)=0;  %right aspect change
+        edges (:,1,10)=xedge68;
     end
 
 end

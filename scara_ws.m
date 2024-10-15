@@ -20,7 +20,7 @@ function scara_ws(th1_lim, th2_lim, L1, L2, x0, y0, r0)
 
         edges = zeros(num_points, 2, 9); % 8 bordi
 
-        %TODO insert evaluation of collision between obstacle and link 2
+        %evaluation of collision between obstacle and link2
         q2max=max(abs(th2_lim_rad(1)),abs(th2_lim_rad(2)));
         xee_min = L1 + L2 * cos(q2max);
         yee_min = L2 * sin(q2max);
@@ -62,7 +62,7 @@ function scara_ws(th1_lim, th2_lim, L1, L2, x0, y0, r0)
                 edges= edges_computation(theta1,theta2);
             else
                 %the exluded joint space region overflows to the right
-                theta1 = linspace(thobs_lim(2), thobs_lim(1), num_points);
+                theta1 = linspace(th1_lim_rad(1), thobs_lim(1), num_points);
                 edges = edges_computation (theta1,theta2);
             end
 
@@ -95,8 +95,8 @@ function scara_ws(th1_lim, th2_lim, L1, L2, x0, y0, r0)
     for i = 1:size(edges, 3)
         for j = 1:num_points
             % Equazioni di cinematica diretta
-            X(j, i) = L1 * cos(edges(j, 1, i)) + L2 * cos(edges(j, 1, i) + edges(j, 2, i));
-            Y(j, i) = L1 * sin(edges(j, 1, i)) + L2 * sin(edges(j, 1, i) + edges(j, 2, i));
+            X(j,i) = L1 * cos(edges(j, 1, i)) + L2 * cos(edges(j, 1, i) + edges(j, 2, i));
+            Y(j,i) = L1 * sin(edges(j, 1, i)) + L2 * sin(edges(j, 1, i) + edges(j, 2, i));
         end
     end
 
@@ -119,7 +119,4 @@ function scara_ws(th1_lim, th2_lim, L1, L2, x0, y0, r0)
     axis equal; % Scala uguale per gli assi X e Y
     hold off;
 
-    % Stampa le dimensioni degli array
-    disp(size(edges));
-    disp(size(X));
 end
