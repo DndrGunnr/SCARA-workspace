@@ -10,6 +10,7 @@ close all
 clear all
 clc
 
+%data
 l1 = 1;
 l2 = 1;
 th1min = -132;
@@ -18,9 +19,10 @@ th2min = -141;
 th2max = 141;
 th1_limits=[th1min,th1max];
 th2_limits=[th2min,th2max];
-x0 = -0.35;
-y0 = 0;
+x0 = -0.25;
+y0 = -0.25;
 r0 = 0.1;
+
 % display
 affichage( l1, l2, th1min, th1max, th2min, th2max, x0, y0, r0);
 scara_ws( th1_limits, th2_limits,l1, l2,x0, y0, r0);

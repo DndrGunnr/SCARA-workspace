@@ -1,50 +1,57 @@
 function scara_ws(th1_lim, th2_lim, L1, L2, x0, y0, r0)
-    % Converti i limiti da gradi a radianti
+    % Function to compute and plot the joint space and workspace of a SCARA robot.
+    % Inputs:
+    %   th1_lim - limits of joint 1 in degrees [min, max]
+    %   th2_lim - limits of joint 2 in degrees [min, max]
+    %   L1 - length of the first link
+    %   L2 - length of the second link
+    %   x0 - x-coordinate of the obstacle center
+    %   y0 - y-coordinate of the obstacle center
+    %   r0 - radius of the obstacle
+
+    % Convert the joint limits from degrees to radians
     th1_lim_rad = deg2rad(th1_lim);
     th2_lim_rad = deg2rad(th2_lim);
 
-    %resolution of joint "span"
+    %resolution of joint span
     num_points=500;
     
-    %span of joints
+    % Generate the span of joint angles
     theta2 = linspace(th2_lim_rad(1), th2_lim_rad(2), num_points);
     theta1 = linspace(th1_lim_rad(1), th1_lim_rad(2), num_points);
 
 
-    %No obstacle case
-    if nargin==4
+    % No obstacle case
+    if nargin == 4
+        % Compute the edges of the joint space without considering obstacles
         edges=edges_computation(theta1,theta2);
-
-    %obstacle in the workspace
     else
+        % Initialize edges array for 10 edges when considering obstacles
+        %edges = zeros(num_points, 2, 10);
 
-        edges = zeros(num_points, 2, 9); % 8 bordi
-
-        %evaluation of collision between obstacle and link2
-        q2max=max(abs(th2_lim_rad(1)),abs(th2_lim_rad(2)));
+        % Evaluate collision between the obstacle and link 2
+        q2max = max(abs(th2_lim_rad(1)), abs(th2_lim_rad(2)));
         xee_min = L1 + L2 * cos(q2max);
         yee_min = L2 * sin(q2max);
-        %minimum distance of EE from center
-        radiusPlcm=sqrt(xee_min^2+yee_min^2);
-        %distance of obstacle furthest point from center
-        obsDist=sqrt(x0^2+y0^2)+r0;
-        if(obsDist>radiusPlcm && obsDist<(L1+L2))
-            error("obstacle may collide with link 2")
+        % Minimum distance of the end-effector from the center
+        radiusPlcm = sqrt(xee_min^2 + yee_min^2);
+        % Distance of the obstacle's furthest point from the center
+        obsDist = sqrt(x0^2 + y0^2) + r0;
+        if (obsDist > radiusPlcm && obsDist < (L1 + L2))
+            error("Obstacle may collide with link 2")
         end
         %compute radius of allowed area
         
 
-        %computation of edges of joint space considering collision between
-        %calcolo dei limiti introdotti dall'ostacolo
+        % Compute the angle of the obstacle with respect to base frame
         theta_obs=atan2(y0,x0);
-        %distanza tra origine e centro della circonferenza dell'ostacolo
+        % Distance between the origin and the center of the obstacle
         d=sqrt(y0^2+x0^2);
         alfa=asin(r0/d);
         thobs_lim=[theta_obs-alfa;theta_obs+alfa];
         rad2deg(thobs_lim)
     
-        %considering the new boundary of the joint space as the
-        %obstacle angle threshold
+        % Consider the new boundary of the joint space as the obstacle angle threshold
         if (obsDist>(L1+L2))
             edges= edges_computation(theta1,theta2);
 
@@ -52,7 +59,7 @@ function scara_ws(th1_lim, th2_lim, L1, L2, x0, y0, r0)
             if thobs_lim(2)<th1_lim_rad(1)
                 edges= edges_computation(theta1,theta2);
             else
-                %the exluded joint space region overflows to the left
+                % The excluded joint space region overflows to the left
                 theta1 = linspace(thobs_lim(2), th1_lim_rad(2), num_points);
                 edges = edges_computation (theta1,theta2);
             end
@@ -61,62 +68,60 @@ function scara_ws(th1_lim, th2_lim, L1, L2, x0, y0, r0)
             if thobs_lim(1)>th1_lim_rad(2)
                 edges= edges_computation(theta1,theta2);
             else
-                %the exluded joint space region overflows to the right
+                % The excluded joint space region overflows to the right
                 theta1 = linspace(th1_lim_rad(1), thobs_lim(1), num_points);
                 edges = edges_computation (theta1,theta2);
             end
 
         else
-            %the exluded joint space region remains inside the "span" of the
-            %first joint
-
+            % The excluded joint space region remains inside the span of the first joint
             edges = edges_computation (theta1,theta2,thobs_lim);
         end
 
     end
 
-    % Grafico dello spazio delle giunture in gradi
+    % Plot the joint space in degrees
     figure;
     hold on;
     for i = 1:size(edges,3)
-        plot(edges(:, 1, i) * (180/pi), edges(:, 2, i) * (180/pi), 'k', 'LineWidth', 1.5); % Contorni in nero
+        plot(edges(:, 1, i) * (180/pi), edges(:, 2, i) * (180/pi), 'k', 'LineWidth', 1.5); % Contours in black
     end
-    xlabel('Theta 1 (gradi)');
-    ylabel('Theta 2 (gradi)');
+    xlabel('Theta 1 (degrees)');
+    ylabel('Theta 2 (degrees)');
     title('SCARA Joint Space');
     grid on;
     hold off;
 
-    % Inizializza le matrici per le coordinate cartesiane
+    % Initialize matrices for Cartesian coordinates
     X = [];
     Y = [];
 
-    % Calcola le coordinate cartesiane per ogni combinazione di theta1 e theta2
+    % Calculate the Cartesian coordinates for each combination of theta1 and theta2
     for i = 1:size(edges, 3)
         for j = 1:num_points
-            % Equazioni di cinematica diretta
+            % Forward kinematics equations
             X(j,i) = L1 * cos(edges(j, 1, i)) + L2 * cos(edges(j, 1, i) + edges(j, 2, i));
             Y(j,i) = L1 * sin(edges(j, 1, i)) + L2 * sin(edges(j, 1, i) + edges(j, 2, i));
         end
     end
 
-    % Grafico dello spazio di lavoro cartesiano in radianti
+    % Plot the Cartesian workspace in radians
     figure;
     hold on;
-    plot(X, Y, 'k', 'LineWidth', 1.5); % Contorni in nero
+    plot(X, Y, 'k', 'LineWidth', 1.5); % Contours in black
     
-    % Aggiungi ostacolo circolare
-    theta_obs = linspace(0, 2*pi, 100); % Angoli per descrivere il cerchio
+    % Add circular obstacle
+    theta_obs = linspace(0, 2*pi, 100); % Angles to describe the circle
     x_circle = x0 + r0 * cos(theta_obs);
     y_circle = y0 + r0 * sin(theta_obs);
-    plot(x_circle, y_circle, 'r--', 'LineWidth', 1.5); % Ostacolo in rosso
+    plot(x_circle, y_circle, 'r--', 'LineWidth', 1.5); % Obstacle in red
     
-    % Etichette e titolo
+    % Labels and title
     xlabel('X (m)');
     ylabel('Y (m)');
     title('SCARA Robot Workspace with Circular Obstacle');
     grid on;
-    axis equal; % Scala uguale per gli assi X e Y
+    axis equal; % Equal scale for X and Y axes
     hold off;
 
 end
